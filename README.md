@@ -8,10 +8,11 @@ Field Labs' servers for transcription and summaries. This project aims to keep
 the device useful when those servers are not available, by pulling recordings
 directly from the device and processing them on your own computer.
 
-> **Status: early, working.** `tools/fieldy-stream.py` streams live audio from
-> the device to a computer with no phone app and no cloud, and Whisper
-> transcribes it locally. Downloading recordings made while disconnected is not
-> mapped yet.
+> **Status: early, working.** A computer with no phone app and no cloud can
+> stream live audio from the device (`tools/fieldy-stream.py`) and download
+> recordings stored on the device (`tools/fieldy-download.py`). Whisper then
+> transcribes them locally. Deleting files from the device after download is not
+> tested yet.
 
 ## Goals
 
@@ -50,8 +51,31 @@ python3 -m venv .venv
 .venv/bin/mlx_whisper my-clip.wav --model mlx-community/whisper-small.en-mlx
 ```
 
-`fieldy-stream.py` writes `01` (start) and `00` (stop) to the stream-control
-characteristic. The other three probe tools are read-only. `fieldy-gatt.py` reads only standard Bluetooth
+### Download stored recordings
+
+Offline storage needs a bonded connection, and the device keeps only one bond.
+If the Fieldy is paired with a phone, the computer cannot read storage. To move
+it to your computer, factory reset the Fieldy: short-click the button (under 1
+second), then immediately press and hold for 10 seconds until the LED cycles
+through 4 colours. **A factory reset erases recordings on the device** and
+unpairs it from your phone.
+
+```sh
+.venv/bin/python tools/fieldy-setup.py             # set the clock (required after a reset)
+# record something with the button, then:
+.venv/bin/python tools/fieldy-download.py status   # first encrypted read bonds the computer
+.venv/bin/python tools/fieldy-download.py sync recordings
+.venv/bin/python tools/decode_e0.py recordings/<file>.opus <file>.wav
+.venv/bin/mlx_whisper <file>.wav --model mlx-community/whisper-small.en-mlx
+```
+
+If the button gives two short vibrations and does not record, the device clock
+is not set. Run `fieldy-setup.py`. `fieldy-download.py` does not tell the device
+to delete anything unless you pass `--ack`.
+
+`fieldy-stream.py` writes `01` (start) and `00` (stop) to the recording-control
+characteristic. `fieldy-setup.py` writes the current time and acknowledges the
+device's reset report. The other three probe tools are read-only. `fieldy-gatt.py` reads only standard Bluetooth
 characteristics (battery, device information, time). `fieldy-smp-info.py` sends
 only MCUmgr read requests. Close the Fieldy phone app first if a connection
 fails, because the device may accept only one connection at a time.
@@ -66,9 +90,10 @@ See [docs/hardware.md](docs/hardware.md) and [docs/protocol.md](docs/protocol.md
 ## Security note
 
 The Fieldy 3 accepts Bluetooth connections without pairing or bonding. Any
-nearby computer can connect to it and read the information listed in
-`docs/protocol.md`. We have not yet tested whether recordings can be read
-without authentication.
+nearby computer can connect, read device information, and start live audio
+streaming. Stored recordings need a bonded link, and a device already bonded to a
+phone refused a new bond in our tests. The firmware update service (MCUmgr)
+needs no authentication. See `docs/protocol.md`.
 
 ## Legal
 
