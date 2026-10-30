@@ -5,7 +5,8 @@ Usage:
   python tools/fieldy-download.py sync OUT_DIR [--ack]
 
 `sync` sends SYNC_START on ...66E1 and saves each file's raw Opus payload.
-Without --ack it never sends FILE_ACK, so the device keeps its recordings.
+Note: on firmware 3.3.5 (transport v2) a completed sync deletes the files
+from the device whether or not --ack is passed.
 """
 
 import asyncio
@@ -141,7 +142,7 @@ async def sync(client, out_dir, ack, ver):
             )
             print(f"  ACK file {fid} ({rx} bytes)")
         else:
-            print(f"  (no ACK for file {fid}; device keeps it)")
+            print(f"  (no ACK sent for file {fid})")
     for fid in list(files):
         print(f"  file {fid} incomplete; saving partial")
         finish(fid)

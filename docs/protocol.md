@@ -217,9 +217,19 @@ transcribed correctly with local Whisper.
 
 ### Deleting files
 
-The official app sends the ACK after it saves a file locally. The device
-probably frees the file after the ACK. Not tested yet: `tools/fieldy-download.py`
-sends no ACK unless you pass `--ack`.
+**A completed sync deletes the files from the device, even without an ACK.**
+Tested on firmware 3.3.5 with transport version 2. A sync with no ACK
+downloaded the file and ended with `*BENDOFREC`, and the next status read showed
+0 files. A sync that sent the ACK (accepted, write status 0) left the device in
+the same state. The official app sends ACKs only for transport version 3, which
+this firmware does not offer.
+
+Write every packet to disk as it arrives. `tools/fieldy-sync.py` does this.
+It is not yet known whether an interrupted sync keeps the file.
+
+A recording started from a computer (write `01` to `...66E7` without
+subscribing to `...66E0`) is stored in offline storage, like a button
+recording.
 
 ## Connection security
 
@@ -245,7 +255,7 @@ sends no ACK unless you pass `--ack`.
 
 ## Next steps
 
-- Test the ACK and confirm whether it deletes the file from the device.
-- Test transport version 3 and the recording manifest on `...66E6`.
+- Test whether an interrupted sync keeps the file on the device.
+- Test transport version 3 (needs newer firmware) and the recording manifest
+  on `...66E6`.
 - Decode the `...66E9` status record.
-- Build a single sync command: set time, download, ACK, decode, transcribe.

@@ -8,11 +8,10 @@ Field Labs' servers for transcription and summaries. This project aims to keep
 the device useful when those servers are not available, by pulling recordings
 directly from the device and processing them on your own computer.
 
-> **Status: early, working.** A computer with no phone app and no cloud can
-> stream live audio from the device (`tools/fieldy-stream.py`) and download
-> recordings stored on the device (`tools/fieldy-download.py`). Whisper then
-> transcribes them locally. Deleting files from the device after download is not
-> tested yet.
+> **Status: early, working.** One command, `tools/fieldy-sync.py`, sets the
+> device clock, downloads the recordings stored on the device, decodes them,
+> and transcribes them with local Whisper. No phone app, no cloud. Live
+> streaming also works (`tools/fieldy-stream.py`).
 
 ## Goals
 
@@ -61,17 +60,24 @@ through 4 colours. **A factory reset erases recordings on the device** and
 unpairs it from your phone.
 
 ```sh
-.venv/bin/python tools/fieldy-setup.py             # set the clock (required after a reset)
-# record something with the button, then:
-.venv/bin/python tools/fieldy-download.py status   # first encrypted read bonds the computer
-.venv/bin/python tools/fieldy-download.py sync recordings
-.venv/bin/python tools/decode_e0.py recordings/<file>.opus <file>.wav
-.venv/bin/mlx_whisper <file>.wav --model mlx-community/whisper-small.en-mlx
+.venv/bin/pip install bleak opuslib mlx-whisper   # needs libopus (brew install opus)
+.venv/bin/python tools/fieldy-setup.py            # set the clock (required after a reset)
+# record with the button, then, whenever you like:
+.venv/bin/python tools/fieldy-sync.py             # writes to ~/Fieldy/YYYY-MM-DD/
 ```
 
+Each recording becomes `HHMMSS_recN.opus`, `.wav`, and `.txt` (timestamped
+transcript). `~/Fieldy/raw/` keeps exactly what the device sent.
+
+**The device deletes each recording once it has sent it.** `fieldy-sync.py`
+writes every packet to disk before it does anything else, so a failed decode or
+transcription loses nothing. Re-run with `--transcribe-only` to retry.
+
 If the button gives two short vibrations and does not record, the device clock
-is not set. Run `fieldy-setup.py`. `fieldy-download.py` does not tell the device
-to delete anything unless you pass `--ack`.
+is not set. Run `fieldy-setup.py` or `fieldy-sync.py`; both set it.
+
+`fieldy-download.py` is the lower-level download tool used while mapping the
+protocol.
 
 `fieldy-stream.py` writes `01` (start) and `00` (stop) to the recording-control
 characteristic. `fieldy-setup.py` writes the current time and acknowledges the
