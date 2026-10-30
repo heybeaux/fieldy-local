@@ -8,8 +8,9 @@ Field Labs' servers for transcription and summaries. This project aims to keep
 the device useful when those servers are not available, by pulling recordings
 directly from the device and processing them on your own computer.
 
-> **Status: research.** We are mapping the device and its Bluetooth protocol.
-> There is no working sync tool yet. Nothing in this repo writes to the device.
+> **Status: research.** The live audio stream format is decoded (Opus, 16 kHz)
+> and a recording captured from the official app has been transcribed locally.
+> There is no standalone sync tool yet. Nothing in this repo writes to the device.
 
 ## Goals
 
