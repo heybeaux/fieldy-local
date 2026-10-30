@@ -93,7 +93,22 @@ Audio format:
   rather than UTC. It advanced by 13 s during the 13 s recording.
 - The other bytes are not decoded yet.
 
-In this capture the audio arrived at real-time speed while the recording was in
+A computer can do the same without the app: `tools/fieldy-stream.py` wrote
+`01`, received 185 notifications (22.2 s of audio) over about 25 s, wrote `00`,
+and the audio transcribed correctly. No pairing or bonding was needed.
+
+Second observed state sequence (laptop session):
+
+```
+01 02 02 11 00 00 00 bd f2 e4 6a   before start (already 2)
+01 03 02 11 00 01 00 d7 f2 e4 6a   stopping
+01 00 02 11 00 01 00 d7 f2 e4 6a   idle
+```
+
+Byte 2 changed from `01` to `02` between sessions, and byte 3 from `0d` to
+`11`. The timestamp advanced 26 s.
+
+In the app capture the audio arrived at real-time speed while the recording was in
 progress. It is not yet known how the app transfers recordings that were made
 while the phone was out of range.
 
@@ -112,6 +127,5 @@ not bond can still connect and read every characteristic listed here.
 ## Next steps
 
 - Capture a sync of recordings made while the phone was out of range.
-- Stream audio from a computer by writing to `...66E7` directly.
 - Map commands and the recording transfer format.
 - Decode the `...66E9` status record.

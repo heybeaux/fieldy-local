@@ -8,9 +8,10 @@ Field Labs' servers for transcription and summaries. This project aims to keep
 the device useful when those servers are not available, by pulling recordings
 directly from the device and processing them on your own computer.
 
-> **Status: research.** The live audio stream format is decoded (Opus, 16 kHz)
-> and a recording captured from the official app has been transcribed locally.
-> There is no standalone sync tool yet. Nothing in this repo writes to the device.
+> **Status: early, working.** `tools/fieldy-stream.py` streams live audio from
+> the device to a computer with no phone app and no cloud, and Whisper
+> transcribes it locally. Downloading recordings made while disconnected is not
+> mapped yet.
 
 ## Goals
 
@@ -41,7 +42,16 @@ python3 -m venv .venv
 .venv/bin/python tools/fieldy-smp-info.py  # read firmware slot information
 ```
 
-All three tools are read-only. `fieldy-gatt.py` reads only standard Bluetooth
+```sh
+# Live audio: turn off Bluetooth on your phone first (one connection at a time).
+.venv/bin/pip install opuslib mlx-whisper   # needs libopus (brew install opus)
+.venv/bin/python tools/fieldy-stream.py my-clip 30
+.venv/bin/python tools/decode_e0.py my-clip.bin my-clip.wav
+.venv/bin/mlx_whisper my-clip.wav --model mlx-community/whisper-small.en-mlx
+```
+
+`fieldy-stream.py` writes `01` (start) and `00` (stop) to the stream-control
+characteristic. The other three probe tools are read-only. `fieldy-gatt.py` reads only standard Bluetooth
 characteristics (battery, device information, time). `fieldy-smp-info.py` sends
 only MCUmgr read requests. Close the Fieldy phone app first if a connection
 fails, because the device may accept only one connection at a time.
