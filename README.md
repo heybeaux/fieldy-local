@@ -8,6 +8,10 @@ Field Labs' servers for transcription and summaries. This project aims to keep
 the device useful when those servers are not available, by pulling recordings
 directly from the device and processing them on your own computer.
 
+> **Want a Mac app?** [EarBud](https://github.com/heybeaux/earbud) is a free,
+> open-source Mac app built on this work: guided setup, one-click sync, and
+> on-device transcription. [Download it here](https://github.com/heybeaux/earbud/releases/latest).
+
 > **Status: early, working.** One command, `tools/fieldy-sync.py`, sets the
 > device clock, downloads the recordings stored on the device, decodes them,
 > and transcribes them with local Whisper. No phone app, no cloud. Live
